@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from psycopg import ForeignKeyViolation, UniqueViolation
+from psycopg.errors import ForeignKeyViolation, UniqueViolation
 from sqlalchemy.exc import IntegrityError
 
 from bot.cache.redis import clear_cache
