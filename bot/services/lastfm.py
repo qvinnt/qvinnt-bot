@@ -30,14 +30,14 @@ class LastFmClient:
 
         params = {
             "method": "track.search",
-            "track": song_name,
+            "track": song_name.strip(),
             "api_key": self.__api_key,
             "format": "json",
             "limit": limit,
         }
 
         if artist_name:
-            params["artist"] = artist_name
+            params["artist"] = artist_name.strip()
 
         response = await self.__client.get(url, params=params)
 
