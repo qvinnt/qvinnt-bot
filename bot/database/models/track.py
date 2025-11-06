@@ -19,7 +19,7 @@ class TrackModel(TimestampMixin, Base):
 
     __table_args__ = (
         UniqueConstraint(
-            artist,
-            title,
+            "artist",
+            "title",
         ),
     )
