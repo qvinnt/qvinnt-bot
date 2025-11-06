@@ -1,4 +1,7 @@
-from sqlalchemy import UniqueConstraint
+from typing import Any
+
+from sqlalchemy import UniqueConstraint, case, or_
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
@@ -23,3 +26,14 @@ class TrackModel(TimestampMixin, Base):
             "title",
         ),
     )
+
+    @hybrid_property
+    def is_used(self) -> bool:  # type: ignore[reportRedeclaration]
+        return self.tiktok_url is not None or self.youtube_url is not None
+
+    @is_used.expression
+    def is_used(cls) -> expression.Case[Any]:  # noqa: N805
+        return case(
+            (or_(cls.tiktok_url != None, cls.youtube_url != None), True),  # type: ignore[reportArgumentType]  # noqa: E711
+            else_=False,
+        )
