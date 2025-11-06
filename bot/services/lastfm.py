@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-
 import httpx
 import pydantic
 
@@ -69,16 +67,3 @@ class LastFmClient:
             )
 
         return []
-
-
-async def main():
-    last_fm_client = LastFmClient("119866155dab585472c9cfbd9f00331d", "Qvinnt Bot")
-
-    tracks = await last_fm_client.search_tracks("я стану популярным в интернете")
-
-    for track in tracks:
-        print(track)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
