@@ -4,9 +4,9 @@ from aiogram import Router
 
 
 def get_dialogs_router() -> Router:
-    from .dialogs import admin_track_dialog
+    # from .dialogs import admin_track_dialog
 
     router = Router()
-    router.include_router(admin_track_dialog)
+    # router.include_router(admin_track_dialog)
 
     return router
