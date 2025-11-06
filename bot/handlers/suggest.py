@@ -23,4 +23,7 @@ async def handle_suggest_command(
     await dialog_manager.start(
         SuggestSG.waiting_for_track,
         mode=StartMode.RESET_STACK,
+        data={
+            "first": True,
+        },
     )

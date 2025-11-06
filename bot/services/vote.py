@@ -37,6 +37,8 @@ async def create_vote(
     try:
         await session.flush()
     except IntegrityError as e:
+        await session.rollback()
+
         if isinstance(e.orig, UniqueViolation):
             msg = f"vote already exists for user {user_id} and track {track_id}"
             raise errors.VoteAlreadyExistsError(msg) from e

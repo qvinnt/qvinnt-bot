@@ -6,7 +6,7 @@ from psycopg import IntegrityError
 from psycopg.errors import UniqueViolation
 from sqlalchemy import func, select
 
-from bot.cache.redis import build_key, cached, clear_cache
+from bot.cache.redis import build_key_with_defaults, cached, clear_cache
 from bot.database.models import TrackModel, VoteModel
 from bot.services import errors
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-@cached(key_builder=lambda session, limit, offset, ignore_used: build_key(limit, offset, ignore_used))
+@cached(key_builder=build_key_with_defaults("limit", "offset", "ignore_used"))
 async def get_tracks_by_votes(
     session: AsyncSession,
     limit: int = 10,
@@ -43,7 +43,7 @@ async def get_tracks_by_votes(
         .outerjoin(vote_counts, TrackModel.id == vote_counts.c.track_id)
         .order_by(
             vote_counts.c.vote_count.desc().nulls_last(),
-            TrackModel.id.asc(),
+            TrackModel.id.desc(),
         )
     )
 
@@ -56,6 +56,26 @@ async def get_tracks_by_votes(
     rows = result.all()
 
     return [(row[0], row[1] or 0) for row in rows]
+
+
+@cached(key_builder=build_key_with_defaults("ignore_used"))
+async def get_tracks_count(
+    session: AsyncSession,
+    *,
+    ignore_used: bool = True,
+) -> int:
+    """Get the number of tracks.
+
+    Returns:
+        The number of tracks.
+
+    """
+    query = select(func.count(TrackModel.id))
+    if ignore_used:
+        query = query.where(TrackModel.is_used == False)  # noqa: E712
+
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_track(
@@ -80,6 +100,8 @@ async def create_track(
     try:
         await session.flush()
     except IntegrityError as e:
+        await session.rollback()
+
         if isinstance(e.orig, UniqueViolation):
             msg = f"track already exists for artist {artist} and title {title}"
             raise errors.TrackAlreadyExistsError(msg) from e
@@ -87,5 +109,6 @@ async def create_track(
         raise errors.TrackServiceError(str(e)) from e
 
     await clear_cache(get_tracks_by_votes)
+    await clear_cache(get_tracks_count)
 
     return new_track

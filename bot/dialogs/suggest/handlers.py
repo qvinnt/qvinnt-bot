@@ -58,8 +58,6 @@ async def handle_track_select(
     data: int,
 ) -> None:
     session: AsyncSession = dialog_manager.middleware_data["session"]
-    logger.info(dialog_manager.dialog_data["tracks"])
-    logger.info(type(dialog_manager.dialog_data["tracks"]))
     track_data: Track = Track.model_validate(dialog_manager.dialog_data["tracks"][data])
 
     try:
@@ -70,7 +68,7 @@ async def handle_track_select(
         )
     except errors.ServiceError as e:
         logger.error(e)
-        await event.answer("⚠️ Произошла ошибка")
+        await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
 
     try:
@@ -81,11 +79,11 @@ async def handle_track_select(
         )
     except errors.ServiceError as e:
         logger.error(e)
-        await event.answer("⚠️ Произошла ошибка")
+        await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
 
     text = f"""
-✨ Вы проголосовали за трек
+⭐️ Вы проголосовали за трек
 <b>{track.artist} - {track.title}</b>
 
 Поделись ссылкой для голосования за этот трек

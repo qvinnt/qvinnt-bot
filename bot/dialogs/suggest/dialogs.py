@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Cancel, Column, Select
@@ -13,7 +14,8 @@ __TRACK_EXAMPLE = "<i>Пример: Cupsize - Ты любишь танцеват
 suggest_dialog = Dialog(
     Window(
         Const(f"Введи название трека\n\n{__TRACK_EXAMPLE}"),
-        Cancel(Const("Отмена")),
+        Cancel(Const("Отмена"), when=F["start_data"]["first"]),
+        Cancel(Const("« Назад"), when=~F["start_data"]["first"]),
         TextInput(
             "track",
             on_success=handlers.handle_track_input,
