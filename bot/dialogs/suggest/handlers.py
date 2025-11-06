@@ -7,6 +7,7 @@ from loguru import logger
 from bot.services import errors
 from bot.services import track as track_service
 from bot.services import vote as vote_service
+from bot.services.lastfm import Track
 from bot.states.suggest import SuggestSG
 
 if TYPE_CHECKING:
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from aiogram_dialog.widgets.kbd import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from bot.services.lastfm import LastFmClient, Track
+    from bot.services.lastfm import LastFmClient
 
 
 __SEARCH_LIMIT = 3
@@ -32,6 +33,8 @@ async def handle_track_input(
 
     if "-" in data and len(data.split("-")) == 2:  # noqa: PLR2004
         artist_name, song_name = data.split("-")
+        artist_name = artist_name.strip()
+        song_name = song_name.strip()
         tracks = await last_fm_client.search_tracks(
             song_name=song_name,
             artist_name=artist_name,
@@ -43,7 +46,7 @@ async def handle_track_input(
             limit=__SEARCH_LIMIT,
         )
 
-    dialog_manager.dialog_data["tracks"] = tracks
+    dialog_manager.dialog_data["tracks"] = [track.model_dump() for track in tracks]
 
     await dialog_manager.switch_to(SuggestSG.waiting_for_confirmation)
 
@@ -54,8 +57,10 @@ async def handle_track_select(
     dialog_manager: DialogManager,
     data: int,
 ) -> None:
-    session: AsyncSession = dialog_manager.dialog_data["session"]
-    track_data: Track = dialog_manager.dialog_data["tracks"][data]
+    session: AsyncSession = dialog_manager.middleware_data["session"]
+    logger.info(dialog_manager.dialog_data["tracks"])
+    logger.info(type(dialog_manager.dialog_data["tracks"]))
+    track_data: Track = Track.model_validate(dialog_manager.dialog_data["tracks"][data])
 
     try:
         track = await track_service.create_track(
@@ -80,11 +85,12 @@ async def handle_track_select(
         return None
 
     text = f"""
-✨ Вы проголосовали за трек <b>{track.artist} - {track.title}</b>
+✨ Вы проголосовали за трек
+<b>{track.artist} - {track.title}</b>
 
-Поделись ссылкой для голосования за этот трек:
+Поделись ссылкой для голосования за этот трек
 <code>t.me/{(await event.bot.get_me()).username}?start=vote_{track.id}</code>
 """
     await event.message.answer(text)
 
-    return dialog_manager.done()
+    return await dialog_manager.done()

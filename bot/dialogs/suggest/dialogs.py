@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Cancel, Select
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.kbd import Cancel, Column, Select
+from aiogram_dialog.widgets.text import Const, Format
 
 from bot.dialogs.suggest import getters, handlers
 from bot.states.suggest import SuggestSG
@@ -12,7 +12,7 @@ __TRACK_EXAMPLE = "<i>Пример: Cupsize - Ты любишь танцеват
 
 suggest_dialog = Dialog(
     Window(
-        Const(f"Введите название трека\n\n{__TRACK_EXAMPLE}"),
+        Const(f"Введи название трека\n\n{__TRACK_EXAMPLE}"),
         Cancel(Const("Отмена")),
         TextInput(
             "track",
@@ -21,13 +21,16 @@ suggest_dialog = Dialog(
         state=SuggestSG.waiting_for_track,
     ),
     Window(
-        Const(f"Выберите трек или введите название трека по-другому\n\n{__TRACK_EXAMPLE}"),
-        Select(
-            Jinja("{{item[1].artist}} - {{item[1].song}}"),
-            id="tracks",
-            item_id_getter=lambda x: x[0],
-            items="tracks",
-            on_click=handlers.handle_track_select,
+        Const("Выбери трек или введи название трека по-другому"),
+        Column(
+            Select(
+                Format("{item[1][artist]} - {item[1][title]}"),
+                id="tracks",
+                item_id_getter=lambda x: x[0],
+                items="tracks",
+                on_click=handlers.handle_track_select,
+                type_factory=lambda x: int(x),
+            )
         ),
         TextInput(
             "track",

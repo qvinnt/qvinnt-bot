@@ -9,9 +9,8 @@ if TYPE_CHECKING:
 async def get_tracks_data(
     dialog_manager: DialogManager,
     **_: Any,
-) -> dict[str, ...]:
+) -> dict[str, list[tuple[int, dict]]]:
     tracks = dialog_manager.dialog_data["tracks"]
-
     return {
         "tracks": list(enumerate(tracks)),
     }
