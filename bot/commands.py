@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from aiogram import Bot
 
 default_commands = [
-    BotCommand(command="start", description="🚀 Start bot"),
+    BotCommand(command="suggest", description="🎵 Предложить трек"),
 ]
 
 
