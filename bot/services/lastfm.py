@@ -9,7 +9,7 @@ from bot.services import errors
 class Track(pydantic.BaseModel):
     title: str
     artist: str
-    listeners: int
+    listeners: int = pydantic.Field(default=0)
 
 
 class LastFmClient:

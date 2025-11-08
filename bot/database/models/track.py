@@ -28,7 +28,7 @@ class TrackModel(TimestampMixin, Base):
     )
 
     @hybrid_property
-    def is_used(self) -> bool:  # type: ignore[reportRedeclaration]
+    def is_used(self) -> bool:  # type: ignore[reportRede laration]
         return self.tiktok_url is not None or self.youtube_url is not None
 
     @is_used.expression

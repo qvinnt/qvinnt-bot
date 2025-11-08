@@ -3,15 +3,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from psycopg.errors import ForeignKeyViolation, UniqueViolation
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
-from bot.cache.redis import clear_cache
+from bot.cache.redis import build_key, cached, clear_cache
 from bot.database.models import VoteModel
 from bot.services import errors
 from bot.services.track import get_tracks_by_votes
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@cached(key_builder=lambda session, track_id: build_key(track_id))
+async def get_votes_count_by_track(
+    session: AsyncSession,
+    track_id: int,
+) -> int:
+    query = select(func.count(VoteModel.id)).where(VoteModel.track_id == track_id)
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_vote(
@@ -55,5 +66,6 @@ async def create_vote(
         raise errors.VoteServiceError(str(e)) from e
 
     await clear_cache(get_tracks_by_votes)
+    await clear_cache(get_votes_count_by_track, track_id)
 
     return new_vote

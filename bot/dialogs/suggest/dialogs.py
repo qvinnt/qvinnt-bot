@@ -3,8 +3,8 @@ from __future__ import annotations
 from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Cancel, Column, Select
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Select
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from bot.dialogs.suggest import getters, handlers
 from bot.states.suggest import SuggestSG
@@ -23,6 +23,39 @@ suggest_dialog = Dialog(
         state=SuggestSG.waiting_for_track,
     ),
     Window(
+        Jinja("""На трек <b>{{ artist }} - {{ title }}</b> уже есть каверы:
+
+🟣 <b>TikTok</b>: {{ tiktok_url }}
+🔴 <b>YouTube</b>: {{ youtube_url }}
+"""),
+        Column(
+            Button(
+                Const("Это не тот трек"),
+                id="not_the_track",
+                on_click=handlers.handle_not_the_track_button_click,
+            ),
+        ),
+        state=SuggestSG.waiting_for_existing_done_track_action,
+        getter=getters.get_existing_done_track_data,
+    ),
+    Window(
+        Jinja("У трека <b>{{ artist }} - {{ title }}</b> уже <b>{{ votes_count }}</b> ⭐️"),
+        Column(
+            Button(
+                Const("Проголосовать за этот трек"),
+                id="vote_for_existing_track",
+                on_click=handlers.handle_vote_for_existing_track_button_click,
+            ),
+            Button(
+                Const("Это не тот трек"),
+                id="not_the_track",
+                on_click=handlers.handle_not_the_track_button_click,
+            ),
+        ),
+        state=SuggestSG.waiting_for_existing_not_done_track_action,
+        getter=getters.get_existing_not_done_track_data,
+    ),
+    Window(
         Const("Выбери трек или введи название трека по-другому"),
         Column(
             Select(
@@ -30,7 +63,7 @@ suggest_dialog = Dialog(
                 id="tracks",
                 item_id_getter=lambda x: x[0],
                 items="tracks",
-                on_click=handlers.handle_track_select,
+                on_click=handlers.handle_new_track_select,
                 type_factory=lambda x: int(x),
             )
         ),
@@ -38,7 +71,7 @@ suggest_dialog = Dialog(
             "track",
             on_success=handlers.handle_track_input,
         ),
-        state=SuggestSG.waiting_for_confirmation,
-        getter=getters.get_tracks_data,
+        state=SuggestSG.waiting_for_new_track_selection,
+        getter=getters.get_new_tracks_data,
     ),
 )
