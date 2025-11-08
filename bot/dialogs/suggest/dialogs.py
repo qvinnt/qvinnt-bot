@@ -42,7 +42,7 @@ suggest_dialog = Dialog(
         Jinja("У трека <b>{{ artist }} - {{ title }}</b> уже <b>{{ votes_count }}</b> ⭐️"),
         Column(
             Button(
-                Const("Проголосовать за этот трек"),
+                Const("Проголосовать за этот трек ⭐️"),
                 id="vote_for_existing_track",
                 on_click=handlers.handle_vote_for_existing_track_button_click,
             ),
