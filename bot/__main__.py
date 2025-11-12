@@ -27,7 +27,7 @@ async def on_startup() -> None:
 
     setup_dialogs(dp)
 
-    await set_commands(bot)
+    await set_commands(bot, admin_id=settings.bot.admin_id)
 
     bot_info = await bot.get_me()
     logger.info(f"name     - {bot_info.full_name}")
@@ -40,7 +40,7 @@ async def on_startup() -> None:
 async def on_shutdown() -> None:
     logger.info("bot stopping...")
 
-    await remove_commands(bot)
+    await remove_commands(bot, admin_id=settings.bot.admin_id)
 
     await dp.storage.close()
     await dp.fsm.storage.close()

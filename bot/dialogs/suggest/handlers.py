@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from bot.services.lastfm import LastFmClient
 
 
-__SEARCH_LIMIT = 1
 __LAST_FM_SEARCH_LIMIT = 3
 
 
@@ -33,49 +32,12 @@ async def handle_track_input(
 ) -> None:
     session: AsyncSession = dialog_manager.middleware_data["session"]
 
-    # Parse input - try multiple formats
-    artist_name = None
-    song_name = data
-
-    # Try parsing "Artist - Song" format
-    if "-" in data:
-        parts = data.split("-", 1)  # Split only on first "-"
-        if len(parts) == 2 and parts[0].strip() and parts[1].strip():  # noqa: PLR2004
-            artist_name = parts[0].strip()
-            song_name = parts[1].strip()
-
-    # First, search in database with parsed format
-    db_tracks = await track_service.search_tracks(
+    db_tracks = await track_service.search_tracks_by_query(
         session,
-        query_string=song_name,
-        artist_name=artist_name,
-        limit=__SEARCH_LIMIT,
+        track_query=data,
+        limit=1,
     )
 
-    # If no artist was specified and no results found, try splitting on common patterns
-    # This handles "Artist Song" format (without "-")
-    if artist_name is None and not db_tracks and " " in data:
-        # Try treating first word(s) as artist, rest as song
-        words = data.split()
-        if len(words) >= 2:  # noqa: PLR2004
-            # Try first word as artist
-            db_tracks = await track_service.search_tracks(
-                session,
-                query_string=" ".join(words[1:]),
-                artist_name=words[0],
-                limit=__SEARCH_LIMIT,
-            )
-
-            # If still no results, try first two words as artist (for multi-word artists)
-            if not db_tracks and len(words) >= 3:  # noqa: PLR2004
-                db_tracks = await track_service.search_tracks(
-                    session,
-                    query_string=" ".join(words[2:]),
-                    artist_name=" ".join(words[:2]),
-                    limit=__SEARCH_LIMIT,
-                )
-
-    # If track found in database, switch to existing track selection
     if db_tracks:
         db_track = db_tracks[0]
         dialog_manager.dialog_data["track_id"] = db_track.id
@@ -87,7 +49,15 @@ async def handle_track_input(
 
         return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_not_done_track_action)
 
-    # If database results are insufficient, search LastFM
+    artist_name = None
+    song_name = data
+
+    if "-" in data:
+        parts = data.split("-", 1)
+        if len(parts) == 2 and parts[0].strip() and parts[1].strip():  # noqa: PLR2004
+            artist_name = parts[0].strip()
+            song_name = parts[1].strip()
+
     last_fm_client: LastFmClient = dialog_manager.middleware_data["last_fm_client"]
     lastfm_tracks = await last_fm_client.search_tracks(
         song_name=song_name,
