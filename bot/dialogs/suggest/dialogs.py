@@ -3,7 +3,7 @@ from __future__ import annotations
 from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Select
+from aiogram_dialog.widgets.kbd import Back, Button, Cancel, Column, Select, Url
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from bot.dialogs.suggest import getters, handlers
@@ -13,7 +13,7 @@ __TRACK_EXAMPLE = "<i>Пример: Cupsize - Ты любишь танцеват
 
 suggest_dialog = Dialog(
     Window(
-        Const(f"Введи название трека\n\n{__TRACK_EXAMPLE}"),
+        Const(f"✍️ Напиши <b>автора</b> и <b>название</b> трека\n\n{__TRACK_EXAMPLE}"),
         Cancel(Const("Отмена"), when=F["start_data"]["first"]),
         Cancel(Const("« Назад"), when=~F["start_data"]["first"]),
         TextInput(
@@ -23,17 +23,26 @@ suggest_dialog = Dialog(
         state=SuggestSG.waiting_for_track,
     ),
     Window(
-        Jinja("""На трек <b>{{ artist }} - {{ title }}</b> уже есть каверы:
-
-🟣 <b>TikTok</b>: {{ tiktok_url }}
-🔴 <b>YouTube</b>: {{ youtube_url }}
-"""),
+        Jinja("На трек <b>{{ artist }} - {{ title }}</b> уже есть кавер"),
         Column(
+            Url(
+                Const("Смотреть в тиктоке 🟣"),
+                url=Format("{tiktok_url}"),
+                id="view_in_tiktok",
+                when=F["tiktok_url"],
+            ),
+            Url(
+                Const("Смотреть на ютубе 🔴"),
+                url=Format("{youtube_url}"),
+                id="view_in_youtube",
+                when=F["youtube_url"],
+            ),
             Button(
                 Const("Это не тот трек"),
                 id="not_the_track",
                 on_click=handlers.handle_not_the_track_button_click,
             ),
+            Back(Const("« Назад")),
         ),
         state=SuggestSG.waiting_for_existing_done_track_action,
         getter=getters.get_existing_done_track_data,

@@ -4,7 +4,7 @@ from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Column, Counter, Select, Start
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Case, Const, Format
 
 from bot.dialogs.top import getters, handlers
 from bot.states.suggest import SuggestSG
@@ -12,11 +12,17 @@ from bot.states.top import TopSG
 
 top_dialog = Dialog(
     Window(
-        Const("""
-🥁 Снимаю <b>каверы</b> на треки с <b>наибольшим количеством голосов ⭐️</b>
+        Case(
+            texts={
+                True: Const(
+                    """🥁 Снимаю <b>каверы</b> на треки с <b>наибольшим количеством голосов ⭐️</b>
 
-Нажимай на трек, чтобы <b>проголосовать ⭐️</b> за него
-"""),
+Нажимай на трек, чтобы <b>проголосовать ⭐️</b> за него""",
+                ),
+                False: Const("Сейчас нет предложенных треков"),
+            },
+            selector=F["tracks"].func(lambda x: len(x) > 0),
+        ),
         Column(
             Select(
                 Format("{item[0].artist} - {item[0].title} | {item[1]} ⭐️"),
@@ -34,9 +40,16 @@ top_dialog = Dialog(
             plus=Const(">"),
             minus=Const("<"),
             on_value_changed=handlers.handle_page_change,
+            when=F["max_pages"] > 1,
         ),
         Start(
-            Const("Предложить другой трек"),
+            Case(
+                texts={
+                    True: Const("Предложить другой трек"),
+                    False: Const("Предложить трек"),
+                },
+                selector=F["tracks"].func(lambda x: len(x) > 0),
+            ),
             id="suggest_track",
             state=SuggestSG.waiting_for_track,
             data={
