@@ -3,16 +3,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from psycopg.errors import UniqueViolation
-from sqlalchemy import desc, func, select, update
+from sqlalchemy import desc, exists, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 
-from bot.cache.redis import build_key, build_key_with_defaults, cached, clear_cache
+from bot.cache.redis import DAY, build_key, build_key_with_defaults, cached, clear_cache
 from bot.database.models import TrackModel, VoteModel
 from bot.services import errors
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+@cached(ttl=DAY, key_builder=lambda session, track_id: build_key(track_id))
+async def track_exists(
+    session: AsyncSession,
+    track_id: int,
+) -> bool:
+    query = select(exists().where(TrackModel.id == track_id))
+    result = await session.scalar(query)
+    return bool(result)
 
 
 @cached(key_builder=build_key_with_defaults("limit", "offset", "ignore_used"))
@@ -279,6 +289,7 @@ async def create_track(
 
         raise errors.TrackServiceError(str(e)) from e
 
+    await clear_cache(track_exists, new_track.id)
     await clear_cache(get_tracks_by_votes)
     await clear_cache(get_tracks_count)
     await clear_cache(get_track_by_id, new_track.id)
@@ -431,6 +442,7 @@ async def delete_track(
 
     from bot.services.vote import get_votes_count_by_track
 
+    await clear_cache(track_exists, track_id)
     await clear_cache(get_track_by_id, track_id)
     await clear_cache(get_track_by_title_and_artist, track.title, track.artist)
     await clear_cache(get_tracks_by_votes)
