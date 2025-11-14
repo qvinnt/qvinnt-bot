@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 
 from aiogram import Router
@@ -19,9 +20,23 @@ async def handle_start_command(
     message: types.Message,
     dialog_manager: DialogManager,
 ) -> None:
-    deep_link = message.text[7:] if message.text else None
+    await message.answer("✌️")
+
+    await asyncio.sleep(1)
+
+    text = """Привет! Я бот Квинта ✌️
+
+Тут ты можешь влиять на то, какие каверы выйдут дальше 😉
+
+🎵 <b>Предложи трек на кавер</b>
+<blockquote>Жми <b>Предложить трек</b> или /suggest</blockquote>
+
+🏆 <b>Голосуй за уже предложенные треки</b>
+<blockquote>Жми <b>Топ треков</b> или /top</blockquote>"""
 
     await message.answer(
-        "Привет! Я бот для голосования за треки. Выбери действие:",
+        text=text,
         reply_markup=MAIN_KEYBOARD,
     )
+
+    deep_link = message.text[7:] if message.text else None
