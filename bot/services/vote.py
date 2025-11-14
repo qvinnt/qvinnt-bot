@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from psycopg.errors import ForeignKeyViolation, UniqueViolation
 from sqlalchemy import func, select
@@ -23,6 +23,15 @@ async def get_votes_count_by_track(
     query = select(func.count(VoteModel.id)).where(VoteModel.track_id == track_id)
     result = await session.execute(query)
     return result.scalar_one()
+
+
+async def get_votes_by_track(
+    session: AsyncSession,
+    track_id: int,
+) -> Sequence[VoteModel]:
+    query = select(VoteModel).where(VoteModel.track_id == track_id)
+    result = await session.execute(query)
+    return result.scalars().all()
 
 
 async def create_vote(

@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from aiogram import Bot
+from aiogram.exceptions import AiogramError
 from aiogram_dialog import Data
 from aiogram_dialog.widgets.kbd import Button
 from loguru import logger
 
+from bot.core.settings import Settings
 from bot.database.models import TrackModel
+from bot.keyboards.inline.track_urls import get_track_urls_keyboard
 from bot.services import errors
 from bot.services import track as track_service
 from bot.services import vote as vote_service
@@ -18,6 +22,7 @@ if TYPE_CHECKING:
     from aiogram_dialog import DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
     from aiogram_dialog.widgets.kbd import Select
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.services.lastfm import LastFmClient
@@ -89,10 +94,55 @@ async def handle_release_urls_input(
 
         await update_function(session, track_id, url)
 
-    # TODO: Add notification task
+    track = await track_service.get_track_by_id(session, track_id)
+    if not track:
+        logger.error(f"Track with id {track_id} not found")
+        await message.answer("Трек не найден")
+        return await dialog_manager.done()
+
+    scheduler: AsyncIOScheduler = dialog_manager.middleware_data["scheduler"]
+    settings: Settings = dialog_manager.middleware_data["settings"]
+    scheduler.add_job(
+        __send_notification_about_new_track,
+        trigger="date",
+        kwargs={
+            "session": session,
+            "bot": message.bot,
+            "track": track,
+            "admin_id": settings.bot.admin_id,
+        },
+    )
 
     await message.answer("Трек зарелизен")
     return await dialog_manager.done()
+
+
+async def __send_notification_about_new_track(
+    session: AsyncSession,
+    bot: Bot,
+    track: TrackModel,
+    admin_id: int,
+) -> None:
+    votes = await vote_service.get_votes_by_track(session, track.id)
+
+    await bot.send_message(
+        admin_id, f"Рассылка о треке {track.artist} - {track.title} на {len(votes)} человек запущена"
+    )
+
+    text = f"На трек <b>{track.artist} - {track.title}</b> вышел кавер"
+    keyboard = get_track_urls_keyboard(track.tiktok_url, track.youtube_url)
+
+    for vote in votes:
+        try:
+            await bot.send_message(
+                vote.user_id,
+                text,
+                reply_markup=keyboard,
+            )
+        except AiogramError as e:
+            logger.warning(f"Error sending message to user {vote.user_id}: {e}")
+
+    await bot.send_message(admin_id, f"Рассылка о треке {track.artist} - {track.title} завершена")
 
 
 async def handle_edit_artist_input(

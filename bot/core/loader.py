@@ -5,6 +5,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from apscheduler.executors.asyncio import AsyncIOExecutor
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from redis.asyncio import ConnectionPool, Redis
 
 from bot.core.settings import Settings
@@ -46,3 +48,5 @@ last_fm_client = LastFmClient(
     api_key=settings.last_fm.api_key,
     app_name=settings.last_fm.app_name,
 )
+
+scheduler = AsyncIOScheduler(executors={"default": AsyncIOExecutor()})

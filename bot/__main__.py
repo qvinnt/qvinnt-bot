@@ -10,7 +10,7 @@ from bot.commands import (
     remove_commands,
     set_commands,
 )
-from bot.core.loader import bot, dp, last_fm_client, sessionmaker, settings
+from bot.core.loader import bot, dp, last_fm_client, scheduler, sessionmaker, settings
 from bot.dialogs import get_dialogs_router
 from bot.handlers import get_handlers_router
 from bot.middleware import register_middlewares
@@ -21,13 +21,19 @@ async def on_startup() -> None:
 
     register_middlewares(
         dp,
-        dependencies={"settings": settings, "last_fm_client": last_fm_client},
+        dependencies={
+            "settings": settings,
+            "last_fm_client": last_fm_client,
+            "scheduler": scheduler,
+        },
         sessionmaker=sessionmaker,
     )
 
     setup_dialogs(dp)
 
     await set_commands(bot, admin_id=settings.bot.admin_id)
+
+    scheduler.start()
 
     bot_info = await bot.get_me()
     logger.info(f"name     - {bot_info.full_name}")
