@@ -30,7 +30,7 @@ async def handle_start(
     dialog_manager.dialog_data["page"] = 1
     session: AsyncSession = dialog_manager.middleware_data["session"]
     tracks_count = await track_service.get_tracks_count(session)
-    dialog_manager.dialog_data["max_pages"] = (tracks_count + TRACKS_PER_PAGE - 1) // TRACKS_PER_PAGE
+    dialog_manager.dialog_data["max_pages"] = (tracks_count + TRACKS_PER_PAGE - 1) // TRACKS_PER_PAGE or 1
 
 
 async def handle_page_change(
