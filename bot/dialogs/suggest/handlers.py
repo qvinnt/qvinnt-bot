@@ -113,7 +113,7 @@ async def handle_vote_for_existing_track_button_click(
         await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
 
-    await _send_vote_success_message(
+    await send_vote_success_message(
         message=event.message,
         track_id=track_id,
         artist=artist,
@@ -167,7 +167,7 @@ async def handle_new_track_select(  # noqa: PLR0911
             await event.answer("⚠️ Произошла ошибка", show_alert=True)
             return None
 
-        await _send_vote_success_message(
+        await send_vote_success_message(
             message=event.message,
             track_id=track.id,
             artist=track.artist,
@@ -191,7 +191,7 @@ async def handle_new_track_select(  # noqa: PLR0911
         await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
 
-    await _send_vote_success_message(
+    await send_vote_success_message(
         message=event.message,
         track_id=track.id,
         artist=track.artist,
@@ -201,7 +201,7 @@ async def handle_new_track_select(  # noqa: PLR0911
     return await dialog_manager.done()
 
 
-async def _send_vote_success_message(
+async def send_vote_success_message(
     message: Message,
     track_id: int,
     artist: str,
