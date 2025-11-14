@@ -3,13 +3,13 @@ from __future__ import annotations
 from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Back, Button, Cancel, Column, Select, Url
+from aiogram_dialog.widgets.kbd import Back, Button, Cancel, Column, Select, SwitchTo, Url
 from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from bot.dialogs.suggest import getters, handlers
 from bot.states.suggest import SuggestSG
 
-__TRACK_EXAMPLE = "<i>Пример: Cupsize - Ты любишь танцевать</i>"
+__TRACK_EXAMPLE = "<i>Пример:</i>\n<blockquote>Cupsize - Ты любишь танцевать</blockquote>"
 
 suggest_dialog = Dialog(
     Window(
@@ -65,7 +65,7 @@ suggest_dialog = Dialog(
         getter=getters.get_existing_not_done_track_data,
     ),
     Window(
-        Const("Выбери трек или введи название трека по-другому"),
+        Const(f"<b>Выбери трек</b> или <b>напиши трек</b> по-другому\n\n{__TRACK_EXAMPLE}"),
         Column(
             Select(
                 Format("{item[1][artist]} - {item[1][title]}"),
@@ -75,6 +75,11 @@ suggest_dialog = Dialog(
                 on_click=handlers.handle_new_track_select,
                 type_factory=lambda x: int(x),
             )
+        ),
+        SwitchTo(
+            Const("« Назад"),
+            id="back",
+            state=SuggestSG.waiting_for_track,
         ),
         TextInput(
             "track",
