@@ -25,7 +25,8 @@ bot = Bot(
 
 redis_client = Redis(
     connection_pool=ConnectionPool(
-        host="redis",
+        host=settings.redis.host,
+        password=settings.redis.password.get_secret_value(),
         port=settings.redis.port,
         db=0,
     ),
