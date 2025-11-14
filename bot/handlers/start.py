@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from aiogram import Router
 from aiogram.filters import CommandStart
 
+from bot.keyboards.main import MAIN_KEYBOARD
+
 if TYPE_CHECKING:
     from aiogram import types
     from aiogram_dialog import DialogManager
@@ -19,4 +21,7 @@ async def handle_start_command(
 ) -> None:
     deep_link = message.text[7:] if message.text else None
 
-    await message.answer(f"<a href='t.me/qvinnt_bot?start=123'>Голосовать</a>\n{deep_link}")
+    await message.answer(
+        "Привет! Я бот для голосования за треки. Выбери действие:",
+        reply_markup=MAIN_KEYBOARD,
+    )
