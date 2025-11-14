@@ -151,6 +151,9 @@ async def handle_new_track_select(
             await event.answer("⚠️ Произошла ошибка", show_alert=True)
             return None
 
+        if track.is_used:
+            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_done_track_action)
+
         try:
             await vote_service.create_vote(
                 session,
