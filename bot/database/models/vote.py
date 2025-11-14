@@ -30,7 +30,7 @@ class VoteModel(TimestampMixin, Base):
 
     __table_args__ = (
         UniqueConstraint(
-            user_id,
-            track_id,
+            "user_id",
+            "track_id",
         ),
     )

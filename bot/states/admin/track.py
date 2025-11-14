@@ -8,6 +8,10 @@ class AdminTrackSG(StatesGroup):
     waiting_for_action = State()
 
 
+class AdminTrackReleaseSG(StatesGroup):
+    waiting_for_urls = State()
+
+
 class AdminTrackEditTitleSG(StatesGroup):
     waiting_for_title = State()
 
@@ -22,3 +26,7 @@ class AdminTrackEditTiktokUrlSG(StatesGroup):
 
 class AdminTrackEditYoutubeUrlSG(StatesGroup):
     waiting_for_url = State()
+
+
+class AdminTrackDeleteSG(StatesGroup):
+    waiting_for_confirmation = State()

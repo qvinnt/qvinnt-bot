@@ -4,9 +4,9 @@ from aiogram import Router
 
 
 def get_dialogs_router() -> Router:
-    from .dialogs import example_dialog
+    from .dialogs import vote_dialog
 
     router = Router()
-    router.include_router(example_dialog)
+    router.include_router(vote_dialog)
 
     return router

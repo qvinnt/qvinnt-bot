@@ -37,7 +37,9 @@ class PostgresSettings(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
+    host: str
     port: PositiveInt
+    password: SecretStr
 
 
 class LastFmSettings(BaseSettings):

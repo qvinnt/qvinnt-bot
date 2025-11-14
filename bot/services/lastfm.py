@@ -9,7 +9,7 @@ from bot.services import errors
 class Track(pydantic.BaseModel):
     title: str
     artist: str
-    listeners: int
+    listeners: int = pydantic.Field(default=0)
 
 
 class LastFmClient:
@@ -17,7 +17,7 @@ class LastFmClient:
         self.__api_key = api_key
         self.__client = httpx.AsyncClient(headers={"user-agent": app_name})
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: ANN001
         await self.__client.aclose()
 
     async def search_tracks(
@@ -30,14 +30,14 @@ class LastFmClient:
 
         params = {
             "method": "track.search",
-            "track": song_name,
+            "track": song_name.strip(),
             "api_key": self.__api_key,
             "format": "json",
             "limit": limit,
         }
 
         if artist_name:
-            params["artist"] = artist_name
+            params["artist"] = artist_name.strip()
 
         response = await self.__client.get(url, params=params)
 

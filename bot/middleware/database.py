@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiogram import BaseMiddleware
+from loguru import logger
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -28,7 +29,8 @@ class DatabaseMiddleware(BaseMiddleware):
             try:
                 result = await handler(event, data)
                 await session.commit()
-            except Exception:
+            except Exception as e:
+                logger.exception(f"Error in database middleware: {e}")
                 await session.rollback()
                 raise
             else:
