@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aiogram_dialog.widgets.kbd import Button
 from loguru import logger
 
 from bot.services import errors
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
     from aiogram.types import CallbackQuery, Message
     from aiogram_dialog import DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
-    from aiogram_dialog.widgets.kbd import Select
+    from aiogram_dialog.widgets.kbd import Button, Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.services.lastfm import LastFmClient
@@ -124,7 +123,7 @@ async def handle_vote_for_existing_track_button_click(
     return await dialog_manager.done()
 
 
-async def handle_new_track_select(
+async def handle_new_track_select(  # noqa: PLR0911
     event: CallbackQuery,
     select: Select[int],
     dialog_manager: DialogManager,

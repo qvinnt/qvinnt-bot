@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from aiogram import F
 from aiogram_dialog import Dialog, Window
-from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Column, Counter, Select, Start
 from aiogram_dialog.widgets.text import Case, Const, Format
 

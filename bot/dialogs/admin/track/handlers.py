@@ -2,30 +2,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from aiogram import Bot
 from aiogram.exceptions import AiogramError
-from aiogram_dialog import Data
-from aiogram_dialog.widgets.kbd import Button
 from loguru import logger
 
-from bot.core.settings import Settings
-from bot.database.models import TrackModel
 from bot.keyboards.inline.track_urls import get_track_urls_keyboard
 from bot.services import errors
 from bot.services import track as track_service
 from bot.services import vote as vote_service
-from bot.services.lastfm import Track
 from bot.states.admin.track import AdminTrackSG
 
 if TYPE_CHECKING:
+    from aiogram import Bot
     from aiogram.types import CallbackQuery, Message
-    from aiogram_dialog import DialogManager
+    from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
-    from aiogram_dialog.widgets.kbd import Select
+    from aiogram_dialog.widgets.kbd import Button
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from bot.services.lastfm import LastFmClient
+    from bot.core.settings import Settings
+    from bot.database.models import TrackModel
 
 
 async def handle_start(
@@ -88,7 +84,7 @@ async def handle_release_urls_input(
 
     track_id = dialog_manager.start_data["track_id"]
 
-    for url, update_function in zip(data, update_functions):
+    for url, update_function in zip(data, update_functions, strict=False):
         if not url:
             continue
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeChat, BotCommandScopeDefault
+from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeChat
 
 if TYPE_CHECKING:
     from aiogram import Bot

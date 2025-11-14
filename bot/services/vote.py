@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 from psycopg.errors import ForeignKeyViolation, UniqueViolation
 from sqlalchemy import func, select
@@ -12,6 +12,8 @@ from bot.services import errors
 from bot.services.track import get_tracks_by_votes
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 

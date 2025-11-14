@@ -17,7 +17,7 @@ class LastFmClient:
         self.__api_key = api_key
         self.__client = httpx.AsyncClient(headers={"user-agent": app_name})
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: ANN001
         await self.__client.aclose()
 
     async def search_tracks(
