@@ -31,6 +31,8 @@ async def handle_track_input(
 ) -> None:
     session: AsyncSession = dialog_manager.middleware_data["session"]
 
+    dialog_manager.dialog_data["track_query"] = data
+
     db_tracks = await track_service.search_tracks_by_query(
         session,
         track_query=data,
@@ -74,8 +76,16 @@ async def handle_not_the_track_button_click(
     button: Button,
     dialog_manager: DialogManager,
 ) -> None:
-    title = dialog_manager.dialog_data["title"]
-    artist = dialog_manager.dialog_data["artist"]
+    track_query = dialog_manager.dialog_data["track_query"]
+
+    artist = None
+    title = track_query
+
+    if "-" in track_query:
+        parts = track_query.split("-", 1)
+        if len(parts) == 2 and parts[0].strip() and parts[1].strip():  # noqa: PLR2004
+            artist = parts[0].strip()
+            title = parts[1].strip()
 
     last_fm_client: LastFmClient = dialog_manager.middleware_data["last_fm_client"]
     lastfm_tracks = await last_fm_client.search_tracks(

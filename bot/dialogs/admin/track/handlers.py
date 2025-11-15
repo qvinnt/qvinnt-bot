@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 from aiogram.exceptions import AiogramError
@@ -137,6 +138,7 @@ async def __send_notification_about_new_track(
             )
         except AiogramError as e:
             logger.warning(f"Error sending message to user {vote.user_id}: {e}")
+        await asyncio.sleep(0.5)
 
     await bot.send_message(admin_id, f"Рассылка о треке {track.artist} - {track.title} завершена")
 
