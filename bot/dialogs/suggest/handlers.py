@@ -66,6 +66,13 @@ async def handle_track_input(
         limit=__LAST_FM_SEARCH_LIMIT,
     )
 
+    if not lastfm_tracks and artist_name and song_name:
+        lastfm_tracks = await last_fm_client.search_tracks(
+            song_name=artist_name,
+            artist_name=song_name,
+            limit=__LAST_FM_SEARCH_LIMIT,
+        )
+
     dialog_manager.dialog_data["tracks"] = [track.model_dump() for track in lastfm_tracks]
 
     return await dialog_manager.switch_to(SuggestSG.waiting_for_new_track_selection)
@@ -94,7 +101,16 @@ async def handle_not_the_track_button_click(
         limit=__LAST_FM_SEARCH_LIMIT,
     )
 
-    dialog_manager.dialog_data["tracks"] = [track.model_dump() for track in lastfm_tracks]
+    if not lastfm_tracks and artist and title:
+        lastfm_tracks = await last_fm_client.search_tracks(
+            song_name=artist,
+            artist_name=title,
+            limit=__LAST_FM_SEARCH_LIMIT,
+        )
+
+    if lastfm_tracks:
+        dialog_manager.dialog_data["tracks"] = [track.model_dump() for track in lastfm_tracks]
+        return await dialog_manager.switch_to(SuggestSG.waiting_for_new_track_selection)
 
     return await dialog_manager.switch_to(SuggestSG.waiting_for_new_track_selection)
 
@@ -218,10 +234,10 @@ async def send_vote_success_message(
     title: str,
 ) -> None:
     text = f"""
-⭐️ Вы проголосовали за трек
+Вы проголосовали за трек ⭐️
 <b>{artist} - {title}</b>
 
-Поделись ссылкой для голосования за этот трек
+Делись ссылкой на трек, чтобы он собрал больше голосов
 <code>t.me/{(await message.bot.get_me()).username}?start=vote_{track_id}</code>
 """
     await message.answer(text)
