@@ -440,7 +440,7 @@ async def delete_track(
 
     await session.delete(track)
 
-    from bot.services.vote import get_votes_count_by_track
+    from bot.services.vote import get_votes_count_by_track  # noqa: PLC0415
 
     await clear_cache(track_exists, track_id)
     await clear_cache(get_track_by_id, track_id)
