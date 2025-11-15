@@ -8,7 +8,7 @@ requires-python = ">=3.13"
 dependencies = [
     "aiogram==3.22.0",
     "aiogram-dialog==2.4.0",
-    "alembic==1.17.1",
+    "alembic==1.17.2",
     "apscheduler>=3.11.1",
     "httpx>=0.28.1",
     "loguru==0.7.3",
@@ -39,7 +39,7 @@ exclude = [
 
 [dependency-groups]
 dev = [
-    "ruff==0.14.3",
+    "ruff==0.14.5",
 ]
 
 [tool.ruff.lint]
