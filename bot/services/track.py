@@ -209,6 +209,15 @@ async def search_tracks_by_query(
         similarity_threshold=similarity_threshold,
     )
 
+    if not db_tracks and artist_name and song_name:
+        db_tracks = await search_tracks(
+            session,
+            query_string=artist_name,
+            artist_name=song_name,
+            limit=limit,
+            similarity_threshold=similarity_threshold,
+        )
+
     # If no artist was specified and no results found, try splitting on common patterns
     # This handles "Artist Song" format (without "-")
     if artist_name is None and not db_tracks and " " in track_query:
@@ -440,7 +449,7 @@ async def delete_track(
 
     await session.delete(track)
 
-    from bot.services.vote import get_votes_count_by_track  # noqa: PLC0415
+    from bot.services.vote import get_votes_count_by_track
 
     await clear_cache(track_exists, track_id)
     await clear_cache(get_track_by_id, track_id)

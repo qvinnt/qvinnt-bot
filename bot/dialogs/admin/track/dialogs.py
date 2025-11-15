@@ -18,7 +18,7 @@ from bot.states.admin.track import (
     AdminTrackSG,
 )
 
-__TRACK_EXAMPLE = "<i>Пример: Cupsize - Ты любишь танцевать</i>"
+__TRACK_EXAMPLE = "<i>Пример:</i>\n<blockquote>Cupsize - Ты любишь танцевать</blockquote>"
 
 admin_track_dialog = Dialog(
     Window(

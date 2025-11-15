@@ -38,7 +38,7 @@ suggest_dialog = Dialog(
                 when=F["youtube_url"],
             ),
             Button(
-                Const("Это не тот трек"),
+                Const("Не тот трек"),
                 id="not_the_track",
                 on_click=handlers.handle_not_the_track_button_click,
             ),
@@ -48,15 +48,15 @@ suggest_dialog = Dialog(
         getter=getters.get_existing_done_track_data,
     ),
     Window(
-        Jinja("У трека <b>{{ artist }} - {{ title }}</b> уже <b>{{ votes_count }}</b> ⭐️"),
+        Jinja("<b>{{ artist }} - {{ title }}\n</b>У трека <b>{{ votes_count }}</b> ⭐️"),
         Column(
             Button(
-                Const("Проголосовать за этот трек ⭐️"),
+                Const("Проголосовать за трек ⭐️"),
                 id="vote_for_existing_track",
                 on_click=handlers.handle_vote_for_existing_track_button_click,
             ),
             Button(
-                Const("Это не тот трек"),
+                Const("Не тот трек"),
                 id="not_the_track",
                 on_click=handlers.handle_not_the_track_button_click,
             ),
