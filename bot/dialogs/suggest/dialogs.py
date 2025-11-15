@@ -4,7 +4,7 @@ from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Back, Button, Cancel, Column, Select, SwitchTo, Url
-from aiogram_dialog.widgets.text import Const, Format, Jinja
+from aiogram_dialog.widgets.text import Case, Const, Format, Jinja
 
 from bot.dialogs.suggest import getters, handlers
 from bot.states.suggest import SuggestSG
@@ -65,7 +65,15 @@ suggest_dialog = Dialog(
         getter=getters.get_existing_not_done_track_data,
     ),
     Window(
-        Const(f"<b>Выбери трек</b> или <b>напиши трек</b> по-другому\n\n{__TRACK_EXAMPLE}"),
+        Case(
+            texts={
+                True: Const(f"<b>Выбери трек</b> или <b>напиши трек</b> по-другому\n\n{__TRACK_EXAMPLE}"),
+                False: Const(
+                    f"😭 Ничего не нашел\nПопробуй <b>написать автора</b> и <b>название</b> трека по-другому\n\n{__TRACK_EXAMPLE}"  # noqa: E501
+                ),
+            },
+            selector=F["tracks"].func(lambda x: len(x) > 0),
+        ),
         Column(
             Select(
                 Format("{item[1][artist]} - {item[1][title]}"),
