@@ -33,7 +33,7 @@ async def stats_task(
         users_count = await user_service.get_users_count(session)
         users_count_one_day = await user_service.get_users_count(session, created_from=date)
         votes_count_one_day = await vote_service.get_votes_count(session, created_from=date)
-        tracks_count = await track_service.get_tracks_count(session, skip_used=False)
+        tracks_count = await track_service.get_tracks_count(session, skip_used=True)
         tracks_count_one_day = await track_service.get_tracks_count(session, created_from=date)
 
         text = f"""
