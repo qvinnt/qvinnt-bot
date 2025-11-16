@@ -12,6 +12,8 @@ from bot.database.models import TrackModel, VoteModel
 from bot.services import errors
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -69,11 +71,12 @@ async def get_tracks_by_votes(
     return [(row[0], row[1] or 0) for row in rows]
 
 
-@cached(key_builder=build_key_with_defaults("ignore_used"))
+@cached(key_builder=build_key_with_defaults("skip_used", "created_from"))
 async def get_tracks_count(
     session: AsyncSession,
     *,
-    ignore_used: bool = True,
+    skip_used: bool = True,
+    created_from: datetime | None = None,
 ) -> int:
     """Get the number of tracks.
 
@@ -82,8 +85,16 @@ async def get_tracks_count(
 
     """
     query = select(func.count(TrackModel.id))
-    if ignore_used:
-        query = query.where(TrackModel.is_used == False)  # noqa: E712
+
+    conditions = []
+    if skip_used:
+        conditions.append(TrackModel.is_used == False)  # noqa: E712
+
+    if created_from:
+        conditions.append(TrackModel.created_at >= created_from)
+
+    if conditions:
+        query = query.where(*conditions)
 
     result = await session.execute(query)
     return result.scalar_one()

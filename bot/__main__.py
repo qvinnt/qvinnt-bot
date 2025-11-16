@@ -25,6 +25,7 @@ async def on_startup() -> None:
             "settings": settings,
             "last_fm_client": last_fm_client,
             "scheduler": scheduler,
+            "sessionmaker": sessionmaker,
         },
         sessionmaker=sessionmaker,
     )

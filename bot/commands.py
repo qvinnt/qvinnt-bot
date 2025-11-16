@@ -14,6 +14,7 @@ default_commands = [
 
 admin_commands = [
     BotCommand(command="track", description="⚙️ Настройки трека"),
+    BotCommand(command="stats", description="📊 Статистика"),
 ]
 
 
