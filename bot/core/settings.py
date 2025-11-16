@@ -47,11 +47,16 @@ class LastFmSettings(BaseSettings):
     app_name: str
 
 
+class TasksSettings(BaseSettings):
+    stats_cron: str
+
+
 class Settings(BaseSettings):
     bot: BotSettings
     file_log: FileLogSettings
     postgres: PostgresSettings
     redis: RedisSettings
     last_fm: LastFmSettings
+    tasks: TasksSettings
 
     model_config = SettingsConfigDict(env_nested_delimiter="__")

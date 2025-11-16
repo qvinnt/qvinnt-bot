@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import exists, select, update
+from sqlalchemy import exists, func, select, update
 
 from bot.cache.redis import DAY, build_key, cached, clear_cache
 from bot.database.models import UserModel
 from bot.services import errors
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -30,6 +32,28 @@ async def get_user(
 ) -> UserModel | None:
     """Get a user by their Telegram ID."""
     return await session.get(UserModel, user_id)
+
+
+async def get_users_count(
+    session: AsyncSession,
+    *,
+    skip_blocked_bot: bool = False,
+    created_from: datetime | None = None,
+) -> int:
+    """Get the number of users."""
+    query = select(func.count(UserModel.id))
+
+    conditions = []
+    if skip_blocked_bot:
+        conditions.append(UserModel.has_blocked_bot == False)  # noqa: E712
+    if created_from:
+        conditions.append(UserModel.created_at >= created_from)
+
+    if conditions:
+        query = query.where(*conditions)
+
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_user(

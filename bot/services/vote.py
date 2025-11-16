@@ -13,6 +13,7 @@ from bot.services.track import get_tracks_by_votes
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from datetime import datetime
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,6 +35,24 @@ async def get_votes_by_track(
     query = select(VoteModel).where(VoteModel.track_id == track_id)
     result = await session.execute(query)
     return result.scalars().all()
+
+
+async def get_votes_count(
+    session: AsyncSession,
+    *,
+    created_from: datetime | None = None,
+) -> int:
+    query = select(func.count(VoteModel.id))
+
+    conditions = []
+    if created_from:
+        conditions.append(VoteModel.created_at >= created_from)
+
+    if conditions:
+        query = query.where(*conditions)
+
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_vote(
