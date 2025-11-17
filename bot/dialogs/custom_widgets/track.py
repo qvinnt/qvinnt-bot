@@ -22,7 +22,7 @@ class TrackText(Text):
         item: str,
         track_getter: Callable[[dict], TrackModel],
         votes_getter: Callable[[dict], int],
-        max_length: int = 47,
+        max_length: int = 46,
         votes_emoji: str = "⭐️",
         track_separator: str = " - ",
         votes_separator: str = " | ",
@@ -45,23 +45,26 @@ class TrackText(Text):
         track = self.track_getter(data[self.item])
         votes = self.votes_getter(data[self.item])
 
+        artist = track.artist
+        title = track.title
+
         votes_text = f"{self.votes_separator} {votes} {self.votes_emoji}"
 
-        total_length = len(track.artist) + len(self.track_separator) + len(track.title) + len(votes_text)
+        total_length = len(artist) + len(self.track_separator) + len(title) + len(votes_text)
 
         if total_length <= self.max_length:
-            return track.artist + self.track_separator + track.title + votes_text
+            return artist + self.track_separator + title + votes_text
 
-        if len(track.artist) == len(track.title):
+        if len(artist) == len(title):
             tranc = math.ceil((total_length + 2 - self.max_length) / 2)
-            return track.artist[:-tranc] + "…" + self.track_separator + track.title[:-tranc] + "…" + votes_text
+            return artist[:-tranc].strip() + "…" + self.track_separator + title[:-tranc].strip() + "…" + votes_text
 
-        if len(track.artist) > len(track.title):
+        if len(artist) > len(title):
             tranc = total_length + 1 - self.max_length
-            return track.artist[:-tranc] + "…" + self.track_separator + track.title + votes_text
+            return artist[:-tranc].strip() + "…" + self.track_separator + title + votes_text
 
-        if len(track.artist) < len(track.title):
+        if len(artist) < len(title):
             tranc = total_length + 1 - self.max_length
-            return track.artist + self.track_separator + track.title[:-tranc] + "…" + votes_text
+            return artist + self.track_separator + title[:-tranc].strip() + "…" + votes_text
 
-        return track.artist + self.track_separator + track.title + votes_text
+        return artist + self.track_separator + title + votes_text
