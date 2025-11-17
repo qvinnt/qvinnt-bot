@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
 from bot.services import errors
+from bot.services import subscription as subscription_service
 from bot.services import track as track_service
 from bot.services import vote as vote_service
 from bot.services.lastfm import Track
+from bot.states.subscription import SubscriptionSG
 from bot.states.suggest import SuggestSG
 
 if TYPE_CHECKING:
     from aiogram.types import CallbackQuery, Message
-    from aiogram_dialog import DialogManager
+    from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
     from aiogram_dialog.widgets.kbd import Button, Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from bot.core.settings import Settings
     from bot.services.lastfm import LastFmClient
 
 
@@ -115,11 +118,38 @@ async def handle_not_the_track_button_click(
     return await dialog_manager.switch_to(SuggestSG.waiting_for_new_track_selection)
 
 
+async def handle_waiting_for_existing_not_done_track_action_process_result(
+    start_data: Data,
+    result: Any,
+    dialog_manager: DialogManager,
+) -> None:
+    if not isinstance(result, dict):
+        return
+
+    event = result["event"]
+
+    await handle_vote_for_existing_track_button_click(
+        event=event,
+        button=None,  # pyright: ignore[reportArgumentType]
+        dialog_manager=dialog_manager,
+    )
+
+
 async def handle_vote_for_existing_track_button_click(
     event: CallbackQuery,
     button: Button,
     dialog_manager: DialogManager,
 ) -> None:
+    settings: Settings = dialog_manager.middleware_data["settings"]
+
+    is_subscribed = await subscription_service.is_subscribed(
+        event.bot,
+        settings.bot.subscription_channel.id,
+        event.from_user.id,
+    )
+    if not is_subscribed:
+        return await dialog_manager.start(SubscriptionSG.waiting_for_action)
+
     session: AsyncSession = dialog_manager.middleware_data["session"]
     track_id = dialog_manager.dialog_data["track_id"]
     artist = dialog_manager.dialog_data["artist"]
@@ -132,7 +162,7 @@ async def handle_vote_for_existing_track_button_click(
             track_id=track_id,
         )
     except errors.VoteAlreadyExistsError:
-        await event.answer("Вы уже проголосовали за этот трек", show_alert=True)
+        await event.answer("Вы уже голосовали за этот трек", show_alert=True)
         return await dialog_manager.done()
     except errors.ServiceError as e:
         logger.error(e)
@@ -149,12 +179,46 @@ async def handle_vote_for_existing_track_button_click(
     return await dialog_manager.done()
 
 
+async def handle_waiting_for_new_track_selection_process_result(
+    start_data: Data,
+    result: Any,
+    dialog_manager: DialogManager,
+) -> None:
+    if not isinstance(result, dict):
+        return
+
+    event = result["event"]
+    track_id = result["track_id"]
+
+    await handle_new_track_select(
+        event=event,
+        select=None,  # pyright: ignore[reportArgumentType]
+        dialog_manager=dialog_manager,
+        data=track_id,
+    )
+
+
 async def handle_new_track_select(  # noqa: PLR0911
     event: CallbackQuery,
     select: Select[int],
     dialog_manager: DialogManager,
     data: int,
 ) -> None:
+    settings: Settings = dialog_manager.middleware_data["settings"]
+
+    is_subscribed = await subscription_service.is_subscribed(
+        event.bot,
+        settings.bot.subscription_channel.id,
+        event.from_user.id,
+    )
+    if not is_subscribed:
+        return await dialog_manager.start(
+            SubscriptionSG.waiting_for_action,
+            data={
+                "track_id": data,
+            },
+        )
+
     session: AsyncSession = dialog_manager.middleware_data["session"]
     track_data: Track = Track.model_validate(dialog_manager.dialog_data["tracks"][data])
 
@@ -186,7 +250,7 @@ async def handle_new_track_select(  # noqa: PLR0911
                 track_id=track.id,
             )
         except errors.VoteAlreadyExistsError:
-            await event.answer("Вы уже проголосовали за этот трек", show_alert=True)
+            await event.answer("Вы уже голосовали за этот трек", show_alert=True)
             return await dialog_manager.done()
         except errors.ServiceError as e:
             logger.error(e)

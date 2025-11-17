@@ -13,6 +13,13 @@ class BotSettings(BaseSettings):
     token: SecretStr
     rate_limit: NonNegativeFloat
     admin_id: NonNegativeInt
+    subscription_channel: SubscriptionChannelSettings
+
+
+class SubscriptionChannelSettings(BaseSettings):
+    id: int
+    username: str
+    invite_url: str
 
 
 class FileLogSettings(BaseSettings):

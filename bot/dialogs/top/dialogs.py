@@ -63,6 +63,7 @@ top_dialog = Dialog(
         ),
         state=TopSG.waiting_for_action,
         getter=getters.get_tracks_data,
+        on_process_result=handlers.handle_process_result,
     ),
     on_start=handlers.handle_start,
 )

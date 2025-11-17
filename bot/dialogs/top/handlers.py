@@ -6,12 +6,14 @@ from loguru import logger
 
 from bot.dialogs.top.constants import TRACKS_PER_PAGE
 from bot.services import errors
+from bot.services import subscription as subscription_service
 from bot.services import track as track_service
 from bot.services import vote as vote_service
 from bot.states.admin.track import AdminTrackSG
+from bot.states.subscription import SubscriptionSG
 
 if TYPE_CHECKING:
-    from aiogram_dialog import ChatEvent, DialogManager
+    from aiogram_dialog import ChatEvent, Data, DialogManager
     from aiogram_dialog.widgets.kbd import ManagedCounter, Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,6 +45,25 @@ async def handle_page_change(
     dialog_manager.dialog_data["page"] = page
 
 
+async def handle_process_result(
+    start_data: Data,
+    result: Any,
+    dialog_manager: DialogManager,
+) -> None:
+    if not isinstance(result, dict):
+        return
+
+    event = result["event"]
+    track_id = result["track_id"]
+
+    await handle_track_select(
+        event=event,
+        select=None,  # pyright: ignore[reportArgumentType]
+        dialog_manager=dialog_manager,
+        data=track_id,
+    )
+
+
 async def handle_track_select(
     event: ChatEvent,
     select: Select[int],
@@ -58,6 +79,19 @@ async def handle_track_select(
             },
         )
 
+    is_subscribed = await subscription_service.is_subscribed(
+        event.bot,
+        settings.bot.subscription_channel.id,
+        event.from_user.id,
+    )
+    if not is_subscribed:
+        return await dialog_manager.start(
+            SubscriptionSG.waiting_for_action,
+            data={
+                "track_id": data,
+            },
+        )
+
     session: AsyncSession = dialog_manager.middleware_data["session"]
 
     try:
@@ -67,7 +101,7 @@ async def handle_track_select(
             track_id=data,
         )
     except errors.VoteAlreadyExistsError:
-        await event.answer("Вы уже проголосовали за этот трек", show_alert=True)  # pyright: ignore[reportAttributeAccessIssue]
+        await event.answer("Вы уже голосовали за этот трек", show_alert=True)  # pyright: ignore[reportAttributeAccessIssue]
         return None
     except errors.ServiceError as e:
         logger.error(e)

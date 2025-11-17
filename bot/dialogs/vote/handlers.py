@@ -6,15 +6,18 @@ from loguru import logger
 
 from bot.dialogs.suggest.handlers import send_vote_success_message
 from bot.services import errors
+from bot.services import subscription as subscription_service
 from bot.services import track as track_service
 from bot.services import vote as vote_service
+from bot.states.subscription import SubscriptionSG
 
 if TYPE_CHECKING:
     from aiogram.types import CallbackQuery
-    from aiogram_dialog import DialogManager
+    from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.kbd import Button
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from bot.core.settings import Settings
 
 
 async def handle_on_start(
@@ -28,11 +31,38 @@ async def handle_on_start(
     dialog_manager.dialog_data["track_id"] = start_data["track_id"]
 
 
+async def handle_process_result(
+    start_data: Data,
+    result: Any,
+    dialog_manager: DialogManager,
+) -> None:
+    if not isinstance(result, dict):
+        return
+
+    event = result["event"]
+
+    await handle_vote_button_click(
+        event=event,
+        button=None,  # pyright: ignore[reportArgumentType]
+        dialog_manager=dialog_manager,
+    )
+
+
 async def handle_vote_button_click(
     event: CallbackQuery,
     button: Button,
     dialog_manager: DialogManager,
 ) -> None:
+    settings: Settings = dialog_manager.middleware_data["settings"]
+
+    is_subscribed = await subscription_service.is_subscribed(
+        event.bot,
+        settings.bot.subscription_channel.id,
+        event.from_user.id,
+    )
+    if not is_subscribed:
+        return await dialog_manager.start(SubscriptionSG.waiting_for_action)
+
     session: AsyncSession = dialog_manager.middleware_data["session"]
     track_id = dialog_manager.dialog_data["track_id"]
 
@@ -43,7 +73,7 @@ async def handle_vote_button_click(
             track_id=track_id,
         )
     except errors.VoteAlreadyExistsError:
-        await event.answer("Вы уже проголосовали за этот трек", show_alert=True)
+        await event.answer("Вы уже голосовали за этот трек", show_alert=True)
         return await dialog_manager.done()
     except errors.ServiceError as e:
         logger.error(e)
