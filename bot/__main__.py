@@ -14,6 +14,7 @@ from bot.core.loader import bot, dp, last_fm_client, scheduler, sessionmaker, se
 from bot.dialogs import get_dialogs_router
 from bot.handlers import get_handlers_router
 from bot.middleware import register_middlewares
+from bot.tasks import register_regular_tasks
 
 
 async def on_startup() -> None:
@@ -34,6 +35,12 @@ async def on_startup() -> None:
 
     await set_commands(bot, admin_id=settings.bot.admin_id)
 
+    register_regular_tasks(
+        scheduler=scheduler,
+        settings=settings,
+        sessionmaker=sessionmaker,
+        bot=bot,
+    )
     scheduler.start()
 
     bot_info = await bot.get_me()
