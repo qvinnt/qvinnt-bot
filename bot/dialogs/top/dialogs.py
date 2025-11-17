@@ -5,6 +5,7 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Column, Counter, Select, Start
 from aiogram_dialog.widgets.text import Case, Const, Format
 
+from bot.dialogs.custom_widgets import TrackText
 from bot.dialogs.top import getters, handlers
 from bot.states.suggest import SuggestSG
 from bot.states.top import TopSG
@@ -24,7 +25,11 @@ top_dialog = Dialog(
         ),
         Column(
             Select(
-                Format("{item[0].artist} - {item[0].title} | {item[1]} ⭐️"),
+                TrackText(
+                    item="item",
+                    track_getter=lambda x: x[0],
+                    votes_getter=lambda x: x[1],
+                ),
                 id="tracks",
                 item_id_getter=lambda x: x[0].id,
                 items="tracks",
@@ -32,12 +37,14 @@ top_dialog = Dialog(
                 type_factory=lambda x: int(x),
             ),
         ),
+        Format("{max_pages}"),
         Counter(
             id="page",
             default=1,
             min_value=1,
             plus=Const(">"),
             minus=Const("<"),
+            text=Format("{value:g}/{data[max_pages]}"),
             on_value_changed=handlers.handle_page_change,
             when=F["max_pages"] > 1,
         ),
