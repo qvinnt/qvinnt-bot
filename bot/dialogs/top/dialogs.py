@@ -37,7 +37,6 @@ top_dialog = Dialog(
                 type_factory=lambda x: int(x),
             ),
         ),
-        Format("{max_pages}"),
         Counter(
             id="page",
             default=1,
