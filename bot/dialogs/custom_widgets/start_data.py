@@ -1,11 +1,17 @@
-from aiogram.fsm.state import State
-from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from aiogram_dialog.api.entities import ShowMode, StartMode
-from aiogram_dialog.widgets.common import WhenCondition
 from aiogram_dialog.widgets.kbd import Button, Start
-from aiogram_dialog.widgets.kbd.button import OnClick
-from aiogram_dialog.widgets.text import Text
+
+if TYPE_CHECKING:
+    from aiogram.fsm.state import State
+    from aiogram.types import CallbackQuery
+    from aiogram_dialog import DialogManager
+    from aiogram_dialog.widgets.common import WhenCondition
+    from aiogram_dialog.widgets.kbd.button import OnClick
+    from aiogram_dialog.widgets.text import Text
 
 
 class StartWithData(Start):
