@@ -23,6 +23,7 @@ vote_dialog = Dialog(
         ),
         state=VoteSG.waiting_for_action,
         getter=getters.get_track_data,
+        on_process_result=handlers.handle_process_result,
     ),
     on_start=handlers.handle_on_start,
 )
