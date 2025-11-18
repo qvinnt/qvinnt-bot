@@ -12,6 +12,7 @@ from bot.states.suggest import SuggestSG
 if TYPE_CHECKING:
     from aiogram import types
     from aiogram_dialog import DialogManager
+    from posthog import Posthog
 
 router = Router(name=__name__)
 
@@ -21,7 +22,9 @@ router = Router(name=__name__)
 async def handle_suggest_command(
     message: types.Message,
     dialog_manager: DialogManager,
+    posthog: Posthog,
 ) -> None:
+    posthog.capture(event="user started suggest")
     await dialog_manager.start(
         SuggestSG.waiting_for_track,
         mode=StartMode.RESET_STACK,

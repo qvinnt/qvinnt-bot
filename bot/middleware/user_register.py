@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiogram import BaseMiddleware
@@ -11,6 +12,7 @@ from bot.services import user as user_service
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+    from posthog import Posthog
     from sqlalchemy.ext.asyncio import AsyncSession
 
 T = TypeVar("T")
@@ -42,6 +44,23 @@ class UserRegisterMiddleware(BaseMiddleware):
                 first_name=tg_user.first_name,
                 last_name=tg_user.last_name,
                 deep_link=deep_link,
+            )
+
+            posthog: Posthog = data["posthog"]
+            posthog.capture(
+                event="user registered",
+                properties={
+                    "$set": {
+                        "username": tg_user.username,
+                        "first_name": tg_user.first_name,
+                        "last_name": tg_user.last_name,
+                        "has_blocked_bot": False,
+                    },
+                    "$set_once": {
+                        "deep_link": deep_link,
+                        "registered_at": datetime.datetime.now(datetime.UTC),
+                    },
+                },
             )
             logger.info(f"user {user.id} added to database")
 
