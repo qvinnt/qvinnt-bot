@@ -10,7 +10,7 @@ from bot.commands import (
     remove_commands,
     set_commands,
 )
-from bot.core.loader import bot, dp, last_fm_client, scheduler, sessionmaker, settings
+from bot.core.loader import bot, dp, last_fm_client, posthog_client, scheduler, sessionmaker, settings
 from bot.dialogs import get_dialogs_router
 from bot.handlers import get_handlers_router
 from bot.middleware import register_middlewares
@@ -27,6 +27,7 @@ async def on_startup() -> None:
             "last_fm_client": last_fm_client,
             "scheduler": scheduler,
             "sessionmaker": sessionmaker,
+            "posthog": posthog_client,
         },
         sessionmaker=sessionmaker,
     )

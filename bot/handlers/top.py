@@ -12,6 +12,7 @@ from bot.states.top import TopSG
 if TYPE_CHECKING:
     from aiogram import types
     from aiogram_dialog import DialogManager
+    from posthog import Posthog
 
 router = Router(name=__name__)
 
@@ -21,7 +22,9 @@ router = Router(name=__name__)
 async def handle_top_command(
     message: types.Message,
     dialog_manager: DialogManager,
+    posthog: Posthog,
 ) -> None:
+    posthog.capture(event="user viewed top")
     await dialog_manager.start(
         TopSG.waiting_for_action,
         mode=StartMode.RESET_STACK,

@@ -14,6 +14,7 @@ def register_middlewares(
     dependencies: dict[str, Any],
     sessionmaker: async_sessionmaker[AsyncSession],
 ) -> None:
+    from .analytics import AnalyticsMiddleware
     from .database import DatabaseMiddleware
     from .dependency import DependencyMiddleware
     from .logger import LoggingMiddleware
@@ -21,6 +22,8 @@ def register_middlewares(
     from .user_register import UserRegisterMiddleware
 
     dp.message.outer_middleware(ThrottlingMiddleware())
+
+    dp.update.outer_middleware(AnalyticsMiddleware())
 
     dp.update.outer_middleware(LoggingMiddleware())
 
@@ -31,4 +34,3 @@ def register_middlewares(
     dp.message.middleware(UserRegisterMiddleware())
 
     dp.callback_query.middleware(CallbackAnswerMiddleware())
-

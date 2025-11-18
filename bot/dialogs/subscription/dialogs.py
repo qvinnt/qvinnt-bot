@@ -20,4 +20,5 @@ subscription_dialog = Dialog(
         getter=getters.get_data,
         state=SubscriptionSG.waiting_for_action,
     ),
+    on_start=handlers.handle_start,
 )

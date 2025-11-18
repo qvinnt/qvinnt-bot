@@ -58,6 +58,11 @@ class TasksSettings(BaseSettings):
     stats_cron: str
 
 
+class PosthogSettings(BaseSettings):
+    project_api_key: str
+    host: str
+
+
 class Settings(BaseSettings):
     bot: BotSettings
     file_log: FileLogSettings
@@ -65,5 +70,6 @@ class Settings(BaseSettings):
     redis: RedisSettings
     last_fm: LastFmSettings
     tasks: TasksSettings
+    posthog: PosthogSettings
 
     model_config = SettingsConfigDict(env_nested_delimiter="__")

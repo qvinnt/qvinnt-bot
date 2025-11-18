@@ -7,6 +7,7 @@ from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from apscheduler.executors.asyncio import AsyncIOExecutor
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from posthog import Posthog
 from redis.asyncio import ConnectionPool, Redis
 
 from bot.core.settings import Settings
@@ -51,3 +52,9 @@ last_fm_client = LastFmClient(
 )
 
 scheduler = AsyncIOScheduler(executors={"default": AsyncIOExecutor()})
+
+posthog_client = Posthog(
+    project_api_key=settings.posthog.project_api_key,
+    host=settings.posthog.host,
+    enable_exception_autocapture=True,
+)
