@@ -31,10 +31,18 @@ admin_track_dialog = Dialog(
         state=AdminTrackSG.waiting_for_track,
     ),
     Window(
-        Jinja("""{{ artist }} - {{ title }}
+        Jinja("""Исполнитель: <b>{{ artist }}</b>
+Название: <b>{{ title }}</b>
 
-🟣 <b>TikTok</b>: {{ tiktok_url or "—" }}
-🔴 <b>YouTube</b>: {{ youtube_url or "—" }}"""),
+Голосов: <b>{{ votes_count }}</b> ⭐
+
+{% if suggested_by_id %}
+Предложено: <b><a href='tg://user?id={{ suggested_by_id }}'>{{ suggested_by_name }}</a></b>
+Дата предложения: <b>{{ suggested_at.strftime("%d.%m.%Y %H:%M") }}</b>
+{% endif %}
+
+🟣 TikTok: <b>{{ tiktok_url or "—" }}</b>
+🔴 YouTube: <b>{{ youtube_url or "—" }}</b>"""),
         StartWithData(
             Const("Зарелизить"),
             id="release",
