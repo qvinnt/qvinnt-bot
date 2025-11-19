@@ -16,3 +16,15 @@ class UserModel(TimestampMixin, Base):
 
     repr_cols = ("id", "username")
     repr_cols_num = 2
+
+    @property
+    def full_name(self) -> str:
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        if self.first_name:
+            return self.first_name
+        if self.last_name:
+            return self.last_name
+        if self.username:
+            return self.username
+        return str(self.id)

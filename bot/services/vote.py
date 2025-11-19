@@ -31,8 +31,11 @@ async def get_votes_count_by_track(
 async def get_votes_by_track(
     session: AsyncSession,
     track_id: int,
+    limit: int | None = None,
 ) -> Sequence[VoteModel]:
-    query = select(VoteModel).where(VoteModel.track_id == track_id)
+    query = select(VoteModel).where(VoteModel.track_id == track_id).order_by(VoteModel.created_at.asc())
+    if limit:
+        query = query.limit(limit)
     result = await session.execute(query)
     return result.scalars().all()
 
