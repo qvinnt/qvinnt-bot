@@ -59,7 +59,7 @@ class TasksSettings(BaseSettings):
 
 
 class PosthogSettings(BaseSettings):
-    project_api_key: str
+    project_api_key: SecretStr
     host: str
 
 

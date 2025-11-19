@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiogram import BaseMiddleware
@@ -58,7 +57,6 @@ class UserRegisterMiddleware(BaseMiddleware):
                     },
                     "$set_once": {
                         "deep_link": deep_link,
-                        "registered_at": datetime.datetime.now(datetime.UTC),
                     },
                 },
             )
