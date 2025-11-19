@@ -3,8 +3,8 @@ from __future__ import annotations
 from aiogram import F
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Group
-from aiogram_dialog.widgets.text import Const, Jinja
+from aiogram_dialog.widgets.kbd import Button, Cancel, Column, Group, Toggle
+from aiogram_dialog.widgets.text import Const, Format, Jinja
 
 from bot.dialogs.admin.track import getters, handlers
 from bot.dialogs.custom_widgets import StartWithData
@@ -87,6 +87,12 @@ admin_track_dialog = Dialog(
 admin_track_release_dialog = Dialog(
     Window(
         Const("Введи ссылку на TikTok, потом YouTube с новой строки"),
+        Toggle(
+            Format("{item[1]}"),
+            id="delay",
+            item_id_getter=lambda x: x[0],
+            items="delays",
+        ),
         Cancel(Const("« Назад")),
         TextInput(
             "urls",
@@ -94,6 +100,7 @@ admin_track_release_dialog = Dialog(
             on_success=handlers.handle_release_urls_input,
         ),
         state=AdminTrackReleaseSG.waiting_for_urls,
+        getter=getters.get_release_delays,
     ),
 )
 
