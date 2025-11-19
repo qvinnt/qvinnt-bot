@@ -36,3 +36,16 @@ async def get_track_data(
     data["youtube_url"] = track.youtube_url or ""
 
     return data
+
+
+async def get_release_delays(
+    **_: Any,
+) -> dict[str, list[list[int | str]]]:
+    return {
+        "delays": [
+            ["0", "Рассылка сразу"],
+            ["1", "Рассылка через 1 минуту"],
+            ["3", "Рассылка через 3 минуты"],
+            ["5", "Рассылка через 5 минут"],
+        ],
+    }

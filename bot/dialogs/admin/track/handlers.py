@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 from typing import TYPE_CHECKING, Any
 
 from aiogram.exceptions import AiogramError
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from aiogram.types import CallbackQuery, Message
     from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
-    from aiogram_dialog.widgets.kbd import Button
+    from aiogram_dialog.widgets.kbd import Button, ManagedRadio
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -97,11 +98,15 @@ async def handle_release_urls_input(
         await message.answer("Трек не найден")
         return await dialog_manager.done()
 
+    delay_toggle: ManagedRadio = dialog_manager.find("delay")  # pyright: ignore[reportAssignmentType]
+    delay = int(delay_toggle.get_checked() or "0")
+
     scheduler: AsyncIOScheduler = dialog_manager.middleware_data["scheduler"]
     settings: Settings = dialog_manager.middleware_data["settings"]
     scheduler.add_job(
         __send_notification_about_new_track,
         trigger="date",
+        run_date=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=delay),
         kwargs={
             "session": session,
             "bot": message.bot,
