@@ -14,6 +14,7 @@ from bot.states.vote import VoteSG
 if TYPE_CHECKING:
     from aiogram import types
     from aiogram_dialog import DialogManager
+    from posthog import Posthog
     from sqlalchemy.ext.asyncio import AsyncSession
 
 router = Router(name=__name__)
@@ -24,7 +25,10 @@ async def handle_start_command(
     message: types.Message,
     dialog_manager: DialogManager,
     session: AsyncSession,
+    posthog: Posthog,
 ) -> None:
+    posthog.capture(event="command used", properties={"command": "start"})
+
     await message.answer("✌️")
 
     await asyncio.sleep(1)

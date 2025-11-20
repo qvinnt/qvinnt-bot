@@ -15,6 +15,7 @@ from bot.states.subscription import SubscriptionSG
 if TYPE_CHECKING:
     from aiogram_dialog import ChatEvent, Data, DialogManager
     from aiogram_dialog.widgets.kbd import ManagedCounter, Select
+    from posthog import Posthog
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.core.settings import Settings
@@ -108,4 +109,6 @@ async def handle_track_select(
         await event.answer("⚠️ Произошла ошибка", show_alert=True)  # pyright: ignore[reportAttributeAccessIssue]
         return None
     else:
+        posthog: Posthog = dialog_manager.middleware_data["posthog"]
+        posthog.capture(event="vote created")
         await event.answer("⭐️ Вы проголосовали за трек")  # pyright: ignore[reportAttributeAccessIssue]

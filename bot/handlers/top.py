@@ -24,7 +24,7 @@ async def handle_top_command(
     dialog_manager: DialogManager,
     posthog: Posthog,
 ) -> None:
-    posthog.capture(event="user viewed top")
+    posthog.capture(event="command used", properties={"command": "top"})
     await dialog_manager.start(
         TopSG.waiting_for_action,
         mode=StartMode.RESET_STACK,

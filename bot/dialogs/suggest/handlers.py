@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.input import ManagedTextInput
     from aiogram_dialog.widgets.kbd import Button, Select
+    from posthog import Posthog
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.core.settings import Settings
@@ -168,6 +169,9 @@ async def handle_vote_for_existing_track_button_click(
         logger.error(e)
         await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
+    else:
+        posthog: Posthog = dialog_manager.middleware_data["posthog"]
+        posthog.capture(event="vote created")
 
     await send_vote_success_message(
         message=event.message,
@@ -198,7 +202,7 @@ async def handle_waiting_for_new_track_selection_process_result(
     )
 
 
-async def handle_new_track_select(  # noqa: PLR0911
+async def handle_new_track_select(
     event: CallbackQuery,
     select: Select[int],
     dialog_manager: DialogManager,
@@ -256,6 +260,9 @@ async def handle_new_track_select(  # noqa: PLR0911
             logger.error(e)
             await event.answer("⚠️ Произошла ошибка", show_alert=True)
             return None
+        else:
+            posthog: Posthog = dialog_manager.middleware_data["posthog"]
+            posthog.capture(event="vote created")
 
         await send_vote_success_message(
             message=event.message,
@@ -280,6 +287,9 @@ async def handle_new_track_select(  # noqa: PLR0911
         logger.error(e)
         await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
+    else:
+        posthog: Posthog = dialog_manager.middleware_data["posthog"]
+        posthog.capture(event="vote created")
 
     await send_vote_success_message(
         message=event.message,

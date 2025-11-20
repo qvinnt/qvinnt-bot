@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from aiogram.types import CallbackQuery
     from aiogram_dialog import Data, DialogManager
     from aiogram_dialog.widgets.kbd import Button
+    from posthog import Posthog
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from bot.core.settings import Settings
@@ -79,6 +80,9 @@ async def handle_vote_button_click(
         logger.error(e)
         await event.answer("⚠️ Произошла ошибка", show_alert=True)
         return None
+    else:
+        posthog: Posthog = dialog_manager.middleware_data["posthog"]
+        posthog.capture(event="vote created")
 
     track = await track_service.get_track_by_id(session, track_id)
     if track is None:
