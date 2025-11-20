@@ -24,7 +24,7 @@ async def handle_suggest_command(
     dialog_manager: DialogManager,
     posthog: Posthog,
 ) -> None:
-    posthog.capture(event="user started suggest")
+    posthog.capture(event="command used", properties={"command": "suggest"})
     await dialog_manager.start(
         SuggestSG.waiting_for_track,
         mode=StartMode.RESET_STACK,

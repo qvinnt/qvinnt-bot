@@ -54,7 +54,7 @@ last_fm_client = LastFmClient(
 scheduler = AsyncIOScheduler(executors={"default": AsyncIOExecutor()})
 
 posthog_client = Posthog(
-    project_api_key=settings.posthog.project_api_key,
+    project_api_key=settings.posthog.project_api_key.get_secret_value(),
     host=settings.posthog.host,
     enable_exception_autocapture=True,
 )
