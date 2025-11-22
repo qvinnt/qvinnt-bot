@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def get_existing_done_track_data(
+async def get_existing_released_track_data(
     dialog_manager: DialogManager,
     **_: Any,
 ) -> dict[str, str]:
@@ -39,7 +39,7 @@ async def get_existing_done_track_data(
     return data
 
 
-async def get_existing_not_done_track_data(
+async def get_existing_not_released_track_data(
     dialog_manager: DialogManager,
     **_: Any,
 ) -> dict[str, str | int]:
@@ -72,3 +72,27 @@ async def get_new_tracks_data(
     return {
         "tracks": list(enumerate(tracks)),
     }
+
+
+async def get_existing_denied_track_data(
+    dialog_manager: DialogManager,
+    **_: Any,
+) -> dict[str, str]:
+    session: AsyncSession = dialog_manager.middleware_data["session"]
+    track_id = dialog_manager.dialog_data["track_id"]
+
+    data = {
+        "artist": "",
+        "title": "",
+        "denied_reason": "",
+    }
+
+    track = await track_service.get_track_by_id(session, track_id)
+    if track is None:
+        logger.error(f"Track with id {track_id} not found")
+        return data
+
+    data["artist"] = track.artist
+    data["title"] = track.title
+    data["reason"] = track.deny_reason or ""
+    return data

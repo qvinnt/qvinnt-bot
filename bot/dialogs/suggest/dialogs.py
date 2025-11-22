@@ -50,8 +50,8 @@ suggest_dialog = Dialog(
             ),
             Back(Const("« Назад")),
         ),
-        state=SuggestSG.waiting_for_existing_done_track_action,
-        getter=getters.get_existing_done_track_data,
+        state=SuggestSG.waiting_for_existing_released_track_action,
+        getter=getters.get_existing_released_track_data,
     ),
     Window(
         Jinja("<b>{{ artist }} - {{ title }}\n</b>У трека <b>{{ votes_count }}</b> ⭐️"),
@@ -67,9 +67,29 @@ suggest_dialog = Dialog(
                 on_click=handlers.handle_not_the_track_button_click,
             ),
         ),
-        on_process_result=handlers.handle_waiting_for_existing_not_done_track_action_process_result,
-        state=SuggestSG.waiting_for_existing_not_done_track_action,
-        getter=getters.get_existing_not_done_track_data,
+        on_process_result=handlers.handle_waiting_for_existing_not_released_track_action_process_result,
+        state=SuggestSG.waiting_for_existing_not_released_track_action,
+        getter=getters.get_existing_not_released_track_data,
+    ),
+    Window(
+        Jinja("""Трек <b>{{ artist }} - {{ title }}</b> отклонен
+
+Комментарий Квинта:
+<blockquote>{{ reason }}</blockquote>"""),
+        Column(
+            SwitchTo(
+                Const("Предложить другой трек"),
+                id="suggest_another_track",
+                state=SuggestSG.waiting_for_track,
+            ),
+            Button(
+                Const("Не тот трек"),
+                id="not_the_track",
+                on_click=handlers.handle_not_the_track_button_click,
+            ),
+        ),
+        state=SuggestSG.waiting_for_existing_denied_track_action,
+        getter=getters.get_existing_denied_track_data,
     ),
     Window(
         Case(

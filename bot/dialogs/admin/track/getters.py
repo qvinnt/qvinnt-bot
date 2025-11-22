@@ -30,6 +30,7 @@ async def get_track_data(
         "suggested_by_name": "",
         "suggested_by_id": 0,
         "suggested_at": "",
+        "deny_reason": "",
     }
 
     track = await track_service.get_track_by_id(session, track_id)
@@ -51,6 +52,7 @@ async def get_track_data(
     data["tiktok_url"] = track.tiktok_url or ""
     data["youtube_url"] = track.youtube_url or ""
     data["votes_count"] = votes_count
+    data["deny_reason"] = track.deny_reason or ""
 
     return data
 
@@ -65,4 +67,13 @@ async def get_release_delays(
             ["3", "Рассылка через 3 минуты"],
             ["5", "Рассылка через 5 минут"],
         ],
+    }
+
+
+async def get_deny_reason(
+    dialog_manager: DialogManager,
+    **_: Any,
+) -> dict[str, str]:
+    return {
+        "reason": dialog_manager.dialog_data["reason"],
     }

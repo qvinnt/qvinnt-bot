@@ -53,7 +53,9 @@ async def handle_start_command(
     if deep_link and deep_link.startswith("vote_") and deep_link[5:].isdigit():
         track_id = int(deep_link[5:])
 
-        if await track_service.track_exists(session, track_id):
+        track = await track_service.get_track_by_id(session, track_id)
+
+        if track and not track.is_released and not track.is_denied:
             await asyncio.sleep(1)
 
             await dialog_manager.start(

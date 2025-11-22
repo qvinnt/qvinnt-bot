@@ -16,6 +16,7 @@ class TrackModel(TimestampMixin, Base):
     title: Mapped[str_255]
     tiktok_url: Mapped[str_255 | None] = mapped_column(server_default=expression.null())
     youtube_url: Mapped[str_255 | None] = mapped_column(server_default=expression.null())
+    deny_reason: Mapped[str_255 | None] = mapped_column(server_default=expression.null())
 
     repr_cols = ("id", "title", "artist")
     repr_cols_num = 3
@@ -28,12 +29,23 @@ class TrackModel(TimestampMixin, Base):
     )
 
     @hybrid_property
-    def is_used(self) -> bool:  # type: ignore[reportRede laration]
+    def is_released(self) -> bool:  # type: ignore[reportRede laration]
         return self.tiktok_url is not None or self.youtube_url is not None
 
-    @is_used.expression
-    def is_used(cls) -> expression.Case[Any]:  # noqa: N805
+    @is_released.expression
+    def is_released(cls) -> expression.Case[Any]:  # noqa: N805
         return case(
             (or_(cls.tiktok_url != None, cls.youtube_url != None), True),  # type: ignore[reportArgumentType]  # noqa: E711
+            else_=False,
+        )
+
+    @hybrid_property
+    def is_denied(self) -> bool:  # type: ignore[reportRede laration]
+        return self.deny_reason is not None
+
+    @is_denied.expression
+    def is_denied(cls) -> expression.Case[Any]:  # noqa: N805
+        return case(
+            (cls.deny_reason != None, True),  # type: ignore[reportArgumentType]  # noqa: E711
             else_=False,
         )
