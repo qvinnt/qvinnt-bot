@@ -13,7 +13,13 @@ __TRACK_EXAMPLE = "<i>Пример:</i>\n<blockquote>Cupsize - Ты любишь
 
 suggest_dialog = Dialog(
     Window(
-        Const(f"✍️ Напиши <b>автора</b> и <b>название</b> трека\n\n{__TRACK_EXAMPLE}"),
+        Const(f"""✍️ Напиши <b>автора</b> и <b>название</b> трека
+
+{__TRACK_EXAMPLE}
+
+<i>* Чуваки, <u>не</u> кидайте пж <u>метол треки</u>,
+меня не вайбит тяжелая музыка</i>
+"""),
         Cancel(Const("Отмена"), when=F["start_data"]["first"]),
         Cancel(Const("« Назад"), when=~F["start_data"]["first"]),
         TextInput(
