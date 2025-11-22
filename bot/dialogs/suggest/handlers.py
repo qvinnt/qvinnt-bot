@@ -49,10 +49,13 @@ async def handle_track_input(
         dialog_manager.dialog_data["title"] = db_track.title
         dialog_manager.dialog_data["artist"] = db_track.artist
 
-        if db_track.is_used:
-            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_done_track_action)
+        if db_track.is_released:
+            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_released_track_action)
 
-        return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_not_done_track_action)
+        if db_track.is_denied:
+            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_denied_track_action)
+
+        return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_not_released_track_action)
 
     artist_name = None
     song_name = data
@@ -119,7 +122,7 @@ async def handle_not_the_track_button_click(
     return await dialog_manager.switch_to(SuggestSG.waiting_for_new_track_selection)
 
 
-async def handle_waiting_for_existing_not_done_track_action_process_result(
+async def handle_waiting_for_existing_not_released_track_action_process_result(
     start_data: Data,
     result: Any,
     dialog_manager: DialogManager,
@@ -244,8 +247,8 @@ async def handle_new_track_select(
             await event.answer("⚠️ Произошла ошибка", show_alert=True)
             return None
 
-        if track.is_used:
-            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_done_track_action)
+        if track.is_released:
+            return await dialog_manager.switch_to(SuggestSG.waiting_for_existing_released_track_action)
 
         try:
             await vote_service.create_vote(
@@ -313,5 +316,7 @@ async def send_vote_success_message(
 
 Делись ссылкой на трек, чтобы он собрал больше голосов
 <code>t.me/{(await message.bot.get_me()).username}?start=vote_{track_id}</code>
+
+<i>Трек может быть отклонен по решению Квинта</i>
 """
     await message.answer(text)

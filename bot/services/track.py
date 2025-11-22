@@ -27,21 +27,14 @@ async def track_exists(
     return bool(result)
 
 
-@cached(key_builder=build_key_with_defaults("limit", "offset", "ignore_used"))
+@cached(key_builder=build_key_with_defaults("limit", "offset", "skip_released_and_denied"))
 async def get_tracks_by_votes(
     session: AsyncSession,
     limit: int = 10,
     offset: int = 0,
     *,
-    ignore_used: bool = True,
+    skip_released_and_denied: bool = True,
 ) -> list[tuple[TrackModel, int]]:
-    """Get top n tracks by votes.
-
-    Returns:
-        List of tuples containing (TrackModel, vote_count).
-        Vote count is 0 for tracks with no votes.
-
-    """
     vote_counts = (
         select(
             VoteModel.track_id,
@@ -60,8 +53,11 @@ async def get_tracks_by_votes(
         )
     )
 
-    if ignore_used:
-        query = query.where(TrackModel.is_used == False)  # noqa: E712
+    if skip_released_and_denied:
+        query = query.where(
+            TrackModel.is_released == False,  # noqa: E712
+            TrackModel.is_denied == False,  # noqa: E712
+        )
 
     query = query.limit(limit).offset(offset)
 
@@ -71,11 +67,11 @@ async def get_tracks_by_votes(
     return [(row[0], row[1] or 0) for row in rows]
 
 
-@cached(key_builder=build_key_with_defaults("skip_used", "created_from"))
+@cached(key_builder=build_key_with_defaults("skip_released_and_denied", "created_from"))
 async def get_tracks_count(
     session: AsyncSession,
     *,
-    skip_used: bool = True,
+    skip_released_and_denied: bool = True,
     created_from: datetime | None = None,
 ) -> int:
     """Get the number of tracks.
@@ -87,8 +83,9 @@ async def get_tracks_count(
     query = select(func.count(TrackModel.id))
 
     conditions = []
-    if skip_used:
-        conditions.append(TrackModel.is_used == False)  # noqa: E712
+    if skip_released_and_denied:
+        conditions.append(TrackModel.is_released == False)  # noqa: E712
+        conditions.append(TrackModel.is_denied == False)  # noqa: E712
 
     if created_from:
         conditions.append(TrackModel.created_at >= created_from)
@@ -468,3 +465,28 @@ async def delete_track(
     await clear_cache(get_tracks_by_votes)
     await clear_cache(get_tracks_count)
     await clear_cache(get_votes_count_by_track, track_id)
+
+
+async def deny_track(
+    session: AsyncSession,
+    track_id: int,
+    reason: str,
+) -> None:
+    """Deny a track with a reason.
+
+    Raises:
+        TrackNotFoundError: If track not found.
+
+    """
+    track = await get_track_by_id(session, track_id)
+
+    if not track:
+        msg = f"Track with id {track_id} not found"
+        raise errors.TrackNotFoundError(msg)
+
+    await session.execute(update(TrackModel).where(TrackModel.id == track_id).values(deny_reason=reason))
+
+    await clear_cache(get_track_by_id, track_id)
+    await clear_cache(get_track_by_title_and_artist, track.title, track.artist)
+    await clear_cache(get_tracks_by_votes)
+    await clear_cache(get_tracks_count)

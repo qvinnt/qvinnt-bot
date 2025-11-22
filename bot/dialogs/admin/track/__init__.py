@@ -6,6 +6,7 @@ from aiogram import Router
 def get_dialogs_router() -> Router:
     from .dialogs import (
         admin_track_delete_dialog,
+        admin_track_deny_dialog,
         admin_track_dialog,
         admin_track_edit_artist_dialog,
         admin_track_edit_tiktok_url_dialog,
@@ -22,5 +23,6 @@ def get_dialogs_router() -> Router:
     router.include_router(admin_track_edit_tiktok_url_dialog)
     router.include_router(admin_track_edit_youtube_url_dialog)
     router.include_router(admin_track_delete_dialog)
+    router.include_router(admin_track_deny_dialog)
 
     return router

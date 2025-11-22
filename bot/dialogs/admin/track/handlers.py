@@ -7,11 +7,12 @@ from typing import TYPE_CHECKING, Any
 from aiogram.exceptions import AiogramError
 from loguru import logger
 
+from bot.keyboards.inline.suggest_another_track import SUGGEST_ANOTHER_TRACK_KEYBOARD
 from bot.keyboards.inline.track_urls import get_track_urls_keyboard
 from bot.services import errors
 from bot.services import track as track_service
 from bot.services import vote as vote_service
-from bot.states.admin.track import AdminTrackSG
+from bot.states.admin.track import AdminTrackDenySG, AdminTrackSG
 
 if TYPE_CHECKING:
     from aiogram import Bot
@@ -276,3 +277,95 @@ async def handle_delete_confirmation_input(
 
     await event.message.answer("Трек удален")
     return await dialog_manager.done(result="deleted")
+
+
+async def handle_deny_reason_input(
+    message: Message,
+    widget: ManagedTextInput,
+    dialog_manager: DialogManager,
+    data: str,
+) -> None:
+    dialog_manager.dialog_data["reason"] = data
+    return await dialog_manager.switch_to(AdminTrackDenySG.waiting_for_confirmation)
+
+
+async def handle_deny_confirmation_input(
+    event: CallbackQuery,
+    button: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    session: AsyncSession = dialog_manager.middleware_data["session"]
+    reason = dialog_manager.dialog_data["reason"]
+
+    if not isinstance(dialog_manager.start_data, dict) or "track_id" not in dialog_manager.start_data:
+        logger.error("Track id not found in start data")
+        return await dialog_manager.done()
+
+    track_id = dialog_manager.start_data["track_id"]
+
+    try:
+        await track_service.deny_track(session, track_id, reason)
+    except errors.TrackServiceError as e:
+        logger.error(e)
+        await event.message.answer("Произошла ошибка")
+        return await dialog_manager.done()
+
+    track = await track_service.get_track_by_id(session, track_id)
+
+    if not track:
+        logger.error(f"Track with id {track_id} not found")
+        await event.message.answer("Трек не найден")
+        return await dialog_manager.done()
+
+    scheduler: AsyncIOScheduler = dialog_manager.middleware_data["scheduler"]
+    settings: Settings = dialog_manager.middleware_data["settings"]
+    scheduler.add_job(
+        __send_notification_about_denied_track,
+        trigger="date",
+        kwargs={
+            "session": session,
+            "bot": event.bot,
+            "track": track,
+            "admin_id": settings.bot.admin_id,
+        },
+    )
+
+    await event.message.answer("Трек отклонен")
+    # TODO: Send notification to users
+    return await dialog_manager.done()
+
+
+async def __send_notification_about_denied_track(
+    session: AsyncSession,
+    bot: Bot,
+    track: TrackModel,
+    admin_id: int,
+) -> None:
+    votes = await vote_service.get_votes_by_track(session, track.id)
+
+    await bot.send_message(
+        admin_id, f"Рассылка о треке {track.artist} - {track.title} на {len(votes)} человек запущена"
+    )
+
+    text = f"""Привет, спасибо за голос 🫶
+Но к сожалению кавера трек <b>{track.artist} - {track.title}</b> не будет
+
+Причина:
+<blockquote>{track.deny_reason}</blockquote>
+
+Буду рад другим вариантам ❤️
+"""
+
+    for vote in votes:
+        try:
+            await bot.send_message(
+                vote.user_id,
+                text,
+                disable_notification=True,
+                reply_markup=SUGGEST_ANOTHER_TRACK_KEYBOARD,
+            )
+        except AiogramError as e:
+            logger.warning(f"Error sending message to user {vote.user_id}: {e}")
+        await asyncio.sleep(0.5)
+
+    await bot.send_message(admin_id, f"Рассылка о треке {track.artist} - {track.title} завершена")

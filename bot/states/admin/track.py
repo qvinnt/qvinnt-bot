@@ -30,3 +30,8 @@ class AdminTrackEditYoutubeUrlSG(StatesGroup):
 
 class AdminTrackDeleteSG(StatesGroup):
     waiting_for_confirmation = State()
+
+
+class AdminTrackDenySG(StatesGroup):
+    waiting_for_reason = State()
+    waiting_for_confirmation = State()
