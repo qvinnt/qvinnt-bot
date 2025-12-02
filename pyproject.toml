@@ -14,7 +14,7 @@ dependencies = [
     "loguru==0.7.3",
     "orjson==3.11.4",
     "posthog>=7.0.1",
-    "psycopg[binary]==3.2.12",
+    "psycopg[binary]==3.3.0",
     "pydantic>=2.11.10",
     "pydantic-settings==2.11.0",
     "redis==7.0.1",
