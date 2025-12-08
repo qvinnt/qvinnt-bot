@@ -6,7 +6,7 @@ authors = [{ name = "Timofey Kochetov", email = "herew26@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "aiogram==3.22.0",
+    "aiogram==3.23.0",
     "aiogram-dialog==2.4.0",
     "alembic==1.17.2",
     "apscheduler>=3.11.1",
