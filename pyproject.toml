@@ -12,7 +12,7 @@ dependencies = [
     "apscheduler>=3.11.1",
     "httpx>=0.28.1",
     "loguru==0.7.3",
-    "orjson==3.11.5",
+    "orjson==3.13.0",
     "posthog>=7.0.1",
     "psycopg[binary]==3.3.2",
     "pydantic>=2.11.10",
