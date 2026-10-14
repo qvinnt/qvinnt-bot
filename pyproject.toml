@@ -19,7 +19,7 @@ dependencies = [
     "pydantic-settings==2.11.0",
     "redis==7.1.0",
     "requests>=2.32.5",
-    "sqlalchemy==2.0.44",
+    "sqlalchemy==2.1.4",
     "uvloop==0.22.1 ; sys_platform != 'win32'",
     "winloop==0.3.1 ; sys_platform == 'win32'",
 ]
